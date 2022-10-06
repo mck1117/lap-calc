@@ -65,9 +65,7 @@ namespace lap_calc
 
         static void Main(string[] args)
         {
-            (var t, var converter) = Track.Load("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\tracks\\ridge");
-            //(var t, var converter) = Track.Load("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\tracks\\thill_west");
-
+            (var t, var converter) = Track.Load(args[0]);
             TrackPositionFinder tpf = new TrackPositionFinder(t);
 
             //var trackPoints = new Vector2[]
@@ -107,12 +105,7 @@ namespace lap_calc
 
             //FindTrackPosition2(new Vector2(0.8f, 0.9f));
 
-            //var carPoints = LapReader.ReadLaps("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\laps\\rc_12 scott.log", converter);
-            var carPoints = LapReader.ReadLaps("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\laps\\rc_13 matthew.log", converter);
-            //var carPoints = LapReader.ReadLaps("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\laps\\rc_14 christian.log", converter);
-
-            //var carPoints = LapReader.ReadLaps("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\laps\\rc_9(1).log", converter);
-            //var carPoints = LapReader.ReadLaps("C:\\Users\\makenne\\source\\repos\\lap_calc\\lap_calc\\laps\\dongi.csv", converter);
+            var carPoints = LapReader.ReadLaps(args[1], converter);
 
             StreamWriter sw = new StreamWriter("output.log");
 
