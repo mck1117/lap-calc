@@ -107,7 +107,7 @@ namespace lap_calc
 
             var carPoints = LapReader.ReadLaps(args[1], converter);
 
-            StreamWriter sw = new StreamWriter("output.log");
+            StreamWriter sw = new StreamWriter(args[2]);
 
             LapTimer timer = new LapTimer();
 

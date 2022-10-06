@@ -2,7 +2,7 @@
   "profiles": {
     "lap_calc": {
       "commandName": "Project",
-      "commandLineArgs": "tracks\\ridge \"laps\\rc_15 scott.log\"",
+      "commandLineArgs": "tracks\\ridge \"laps\\rc_15 scott.log\" output.log",
       "workingDirectory": "$(ProjectDir)"
     }
   }
