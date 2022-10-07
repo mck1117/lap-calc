@@ -6,7 +6,7 @@ using System.IO;
 
 namespace lap_calc
 {
-    struct FindSegmentResult
+    public struct FindSegmentResult
     {
         public float DistanceAlong { get; init; }
         public float FractionAlong { get; init; }
@@ -28,7 +28,7 @@ namespace lap_calc
         }
     }
 
-    class Segment
+    public class Segment
     {
         public Vector2 First { get; init; }
         public Vector2 Second { get; init; }
@@ -79,7 +79,7 @@ namespace lap_calc
         }
     }
 
-    class Track
+    public class Track
     {
         public Segment[] TrackSegments { get; init; }
 
@@ -117,7 +117,7 @@ namespace lap_calc
             return (new Track(trackPoints), converter);
         }
 
-        private Track(IEnumerable<Vector2> trackPoints)
+        public Track(IEnumerable<Vector2> trackPoints)
         {
             TrackSegments = trackPoints.Zip(trackPoints.Skip(1), (a, b) => new Segment(a, b)).ToArray();
 
@@ -152,14 +152,14 @@ namespace lap_calc
         }
     }
 
-    struct FindPositionResult
+    public struct FindPositionResult
     {
         public float TrackFraction;
         public float DistanceFromStart;
         public float CrossTrackPosition;
     }
 
-    class TrackPositionFinder
+    public class TrackPositionFinder
     {
         private class FindPositionResult2
         {

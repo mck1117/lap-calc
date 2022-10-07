@@ -9,7 +9,7 @@ using DotSpatial.Projections.Transforms;
 
 namespace lap_calc
 {
-    class UtmConverter
+    public class UtmConverter
     {
         private double OffsetX { get; init; }
         private double OffsetY { get; init; }

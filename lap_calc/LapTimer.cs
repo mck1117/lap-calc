@@ -7,14 +7,14 @@ using System.Xml.Schema;
 
 namespace lap_calc
 {
-    struct LapTimeResult
+    public struct LapTimeResult
     {
         public Double LapElapsed;
         public int LapNumber;
         public Double LastLapTime;
     }
 
-    class LapTimer
+    public class LapTimer
     {
         private double lapStartTime = 0;
 
