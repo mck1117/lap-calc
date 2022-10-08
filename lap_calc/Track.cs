@@ -232,11 +232,7 @@ namespace lap_calc
                 var b2 = Vector2.Normalize(new Vector2(nextSum.Y, -nextSum.X));
                 bool beforeNextSector = VectorHelper.Cross(point - current.Second, b2) > 0;
 
-                bool isFound = afterLastSector && beforeNextSector;
-
-                
-
-                if (isFound)
+                if (afterLastSector && beforeNextSector)
                 {
                     // var trackFraction = ((current.StartDistance + current.Length * crossTrackCurrent.FractionAlong) / track.Length);
                     // Console.WriteLine("iter " + (i + 1) + " pos " + trackFraction + " cross " + crossTrackCurrent.CrossTrack);
