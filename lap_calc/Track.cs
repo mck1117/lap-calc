@@ -105,14 +105,15 @@ namespace lap_calc
             }
         }
 
-        public static (Track, UtmConverter) Load(String folder)
+        public static (Track, ICoordinateConverter) Load(String folder)
         {
             var refPoint = File.ReadAllText(folder + "\\track.txt").Split(",").Select(s => double.Parse(s)).ToArray();
-            UtmConverter converter = new UtmConverter(refPoint[0], refPoint[1]);
+            //var converter = new UtmConverter(refPoint[0], refPoint[1]);
+            var converter = new SuperCheatyConverter(refPoint[0], refPoint[1]);
 
             var trackPoints = FileLines(folder + "\\points.csv")
-                .Select(l => l.Split(',').Select(s => s.Trim()).ToArray())
-                .Select(s => converter.ToLocal(double.Parse(s[0]), double.Parse(s[1]))).ToArray();
+                .Select(l => l.Split(','))
+                .Select(s => converter.ToLocal(double.Parse(s[0].Trim()), double.Parse(s[1].Trim())));
 
             return (new Track(trackPoints), converter);
         }

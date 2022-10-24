@@ -85,7 +85,7 @@ namespace lap_calc
             throw new InvalidDataException();
         }
 
-        public static IEnumerable<LogLineRead> ReadLaps(String file, UtmConverter converter)
+        public static IEnumerable<LogLineRead> ReadLaps(String file, ICoordinateConverter converter)
         {
             using (StreamReader sr = new StreamReader(file))
             {
