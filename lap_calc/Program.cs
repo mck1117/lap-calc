@@ -33,47 +33,10 @@ namespace lap_calc
 
         static void Main(string[] args)
         {
-            (var t, var converter) = Track.Load(args[0]);
+            var t = new Track(args[0]);
             TrackPositionFinder tpf = new TrackPositionFinder(t);
 
-            //var trackPoints = new Vector2[]
-            //{
-            //    new Vector2(0, 0),
-            //    new Vector2(1, 0.05f),
-            //    new Vector2(2, 0.2f),
-            //    new Vector2(3, 1),
-            //    new Vector2(4, 2),
-            //    new Vector2(4.8f, 3),
-            //    new Vector2(4.95f, 4),
-            //    new Vector2(5, 5),
-            //};
-
-            //var trackPoints = new Vector2[]
-            //{
-            //    new Vector2(0, 0),
-            //    new Vector2(1, 0),
-            //    new Vector2(1, 1),
-            //    new Vector2(1, 2),
-            //};
-
-
-            // just NE of the start line
-            //var testPoint = converter.ToLocal(47.25478646934098, -123.19316361737613);
-
-            // just after chicane entry, left side of track
-            //var testPoint = converter.ToLocal(47.25475119943449, -123.1897112294538);
-
-            // just after chicane entry, right side of track
-            //var testPoint = converter.ToLocal(47.25465298282364, -123.1896988431295);
-
-            // Just before finish line
-            //var testPoint = converter.ToLocal(47.254737819550414, -123.19341799646936);
-
-            //var r = FindTrackPosition2(testPoint);
-
-            //FindTrackPosition2(new Vector2(0.8f, 0.9f));
-
-            var carPoints = LogReader.ReadLog(args[1], converter);
+            var carPoints = LogReader.ReadLog(args[1], t.CoordinateConverter);
 
             StreamWriter sw = new StreamWriter(args[2]);
 

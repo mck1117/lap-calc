@@ -83,6 +83,8 @@ namespace lap_calc
     {
         public Segment[] TrackSegments { get; init; }
 
+        public ICoordinateConverter CoordinateConverter { get; init; }
+
         public float Length { get; init; }
 
         public static IEnumerable<string> FileLines(string file)
@@ -105,38 +107,41 @@ namespace lap_calc
             }
         }
 
-        public static (Track, ICoordinateConverter) Load(String folder)
+        public Track(string folder)
         {
             var refPoint = File.ReadAllText(folder + "\\track.txt").Split(",").Select(s => double.Parse(s)).ToArray();
             //var converter = new UtmConverter(refPoint[0], refPoint[1]);
-            var converter = new SuperCheatyConverter(refPoint[0], refPoint[1]);
+            this.CoordinateConverter = new SuperCheatyConverter(refPoint[0], refPoint[1]);
 
             var trackPoints = FileLines(folder + "\\points.csv")
                 .Select(l => l.Split(','))
-                .Select(s => converter.ToLocal(double.Parse(s[0].Trim()), double.Parse(s[1].Trim())));
+                .Select(s => this.CoordinateConverter.ToLocal(double.Parse(s[0].Trim()), double.Parse(s[1].Trim())));
 
-            return (new Track(trackPoints), converter);
+            (this.TrackSegments, this.Length) = MakeTrack(trackPoints);
         }
 
         public Track(IEnumerable<Vector2> trackPoints)
         {
-            TrackSegments = trackPoints.Zip(trackPoints.Skip(1), (a, b) => new Segment(a, b)).ToArray();
+            (this.TrackSegments, this.Length) = MakeTrack(trackPoints);
+        }
+
+        private static (Segment[], float) MakeTrack(IEnumerable<Vector2> trackPoints)
+        {
+            var trackSegments = trackPoints.Zip(trackPoints.Skip(1), (a, b) => new Segment(a, b)).ToArray();
 
             // Compute segment start distances
             float totalLength = 0;
-            for (int i = 0; i < TrackSegments.Length; i++)
+            for (int i = 0; i < trackSegments.Length; i++)
             {
-                TrackSegments[i].StartDistance = totalLength;
-                totalLength += TrackSegments[i].Length;
+                trackSegments[i].StartDistance = totalLength;
+                totalLength += trackSegments[i].Length;
             }
 
-            this.Length = totalLength;
-
             // Build linked list of track segments
-            for (int i = 0; i < TrackSegments.Length - 1; i++)
+            for (int i = 0; i < trackSegments.Length - 1; i++)
             {
-                var cur = TrackSegments[i];
-                var next = TrackSegments[i + 1];
+                var cur = trackSegments[i];
+                var next = trackSegments[i + 1];
 
                 cur.Id = i;
                 cur.Next = next;
@@ -145,11 +150,13 @@ namespace lap_calc
 
             // link ends together
             {
-                var last = TrackSegments[TrackSegments.Length - 1];
-                TrackSegments[0].Previous = last;
-                last.Next = TrackSegments[0];
-                last.Id = TrackSegments.Length - 1;
+                var last = trackSegments[trackSegments.Length - 1];
+                trackSegments[0].Previous = last;
+                last.Next = trackSegments[0];
+                last.Id = trackSegments.Length - 1;
             }
+
+            return (trackSegments, totalLength);
         }
     }
 
