@@ -21,7 +21,7 @@ namespace lap_calc
         public CarPoint ParsedCarPoint;
     }
 
-    internal class LapReader
+    internal class LogReader
     {
         private static int FindColumnIndex(string[] headers, string name)
         {
@@ -85,7 +85,7 @@ namespace lap_calc
             throw new InvalidDataException();
         }
 
-        public static IEnumerable<LogLineRead> ReadLaps(String file, ICoordinateConverter converter)
+        public static IEnumerable<LogLineRead> ReadLog(String file, ICoordinateConverter converter)
         {
             using (StreamReader sr = new StreamReader(file))
             {
