@@ -61,7 +61,7 @@ namespace lap_calc
         }
 
         // Computes the cross track error (X) and forward distance (Y) from the first point.
-        public FindSegmentResult CrossTrack(Vector2 test)
+        public FindSegmentResult CrossTrackStraightSection(Vector2 test)
         {
             var startToPoint = test - First;
 
@@ -76,6 +76,77 @@ namespace lap_calc
             float crossTrack = distanceFromStart * (float)Math.Sin(theta);
 
             return new FindSegmentResult { DistanceAlong = scalarLength, FractionAlong = scalarLength / Length, CrossTrack = crossTrack };
+        }
+
+        private static Vector3 ToV3(Vector2 x)
+        {
+            return new Vector3(x.X, x.Y, 0);
+        }
+
+        public FindSegmentResult CrossTrack(Vector2 test)
+        {
+            var prevSum = Previous.Direction + this.Direction;
+            // b1 is a vector pointed to the right, mid way between the previous segment and the current segment
+            var b1 = new Vector2(prevSum.Y, -prevSum.X);
+
+            var nextSum = this.Direction + this.Next.Direction;
+            // b2 is a vector pointed to the right, mid way between the current segment and the next segment
+            var b2 = new Vector2(nextSum.Y, -nextSum.X);
+
+            // dot(A, B) = |A| |B| cos(theta)
+            var angleBetween = Math.Acos(Vector2.Dot(b1, b2) / (b1.Length() * b2.Length()));
+
+            // 0.052 radians ~= 3 degrees
+            if (angleBetween < 0.052) {
+                // For small angles, the "linear" approximation works well enough and
+                // avoids numerical stability issues of the intersection being very far away
+                return CrossTrackStraightSection(test);
+            }
+
+            Vector2 c;
+
+            {
+                Vector2 p1 = this.First;
+                Vector2 p2 = p1 + b1;
+                Vector2 p3 = this.Second;
+                Vector2 p4 = p3 + b2;
+
+                // Get the direction of each line segment
+                Vector2 dir1 = p2 - p1;
+                Vector2 dir2 = p4 - p3;
+
+                // Calculate the cross product of each line segment's direction with the other line segment's direction
+                float cross1 = VectorHelper.Cross(dir1, p3 - p1);
+                float cross2 = VectorHelper.Cross(dir1, p4 - p1);
+                float cross3 = VectorHelper.Cross(dir2, p1 - p3);
+                float cross4 = VectorHelper.Cross(dir2, p2 - p3);
+
+                float t = cross3 / (cross3 - cross4);
+                c = p1 + new Vector2(dir1.X * t, dir1.Y * t);
+            }
+
+            Vector2 cToTest = test - c;
+            Vector2 CA = this.First - c;
+            Vector2 CB = this.Second - c;
+
+            // this value computes distance from centerline (arc) of the segment, but doesn't account for left/right
+            // turns having opposite sign. crossTrack>0 means the car is on the "outside" of the corner, whichever side
+            // that is.
+            // We want "positive = left" but right now it's "positive = outside"
+            var crossTrack = cToTest.Length() - CB.Length();
+
+            // For left hand corners, flip the sign on crossTrack
+            if (VectorHelper.Cross(CB, this.Direction) > 0)
+            {
+                crossTrack *= -1;
+            }
+
+            var beta = Math.Acos(Vector2.Dot(CA, CB) / (CA.Length() * CB.Length()));
+            var alpha = Math.Acos(Vector2.Dot(cToTest, CA) / (CA.Length() * cToTest.Length()));
+
+            var progressAlong = alpha / beta;
+
+            return new FindSegmentResult { DistanceAlong = (float)(this.Length * progressAlong), FractionAlong = (float)progressAlong, CrossTrack = (float)crossTrack };
         }
     }
 
@@ -242,8 +313,8 @@ namespace lap_calc
 
                 if (afterLastSector && beforeNextSector)
                 {
-                    // var trackFraction = ((current.StartDistance + current.Length * crossTrackCurrent.FractionAlong) / track.Length);
-                    // Console.WriteLine("iter " + (i + 1) + " pos " + trackFraction + " cross " + crossTrackCurrent.CrossTrack);
+                    //var trackFraction = ((current.StartDistance + current.Length * crossTrackCurrent.FractionAlong) / track.Length);
+                    //Console.WriteLine("iter " + (i + 1) + " pos " + trackFraction + " cross " + crossTrackCurrent.CrossTrack + " cross 2 " + crossTrackCurrentBoth.Item2.CrossTrack);
                     return new FindPositionResult2(current, crossTrackCurrent, this.track);
                 }
 
