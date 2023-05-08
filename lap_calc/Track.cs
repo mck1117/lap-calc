@@ -103,19 +103,13 @@ namespace lap_calc
                 return CrossTrackStraightSection(test);
             }
 
-
             // Find the intersection point between vectors b1 and b2 - this is the "instant center" of the corner
-            Vector2 c;
+            float cross3 = VectorHelper.Cross(b2, -this.Relative);
+            float cross4 = VectorHelper.Cross(b2, b1 - this.Relative);
+            float t = cross3 / (cross3 - cross4);
+            Vector2 c = this.First + new Vector2(b1.X * t, b1.Y * t);
 
-            {
-                // Calculate the cross product of each line segment's direction with the other line segment's direction
-                float cross3 = VectorHelper.Cross(b2, -this.Relative);
-                float cross4 = VectorHelper.Cross(b2, b1 - this.Relative);
-
-                float t = cross3 / (cross3 - cross4);
-                c = this.First + new Vector2(b1.X * t, b1.Y * t);
-            }
-
+            // Compute some vectors from the instant center to the sector start, sector end, and car
             Vector2 cToTest = test - c;
             Vector2 CA = this.First - c;
             Vector2 CB = this.Second - c;
