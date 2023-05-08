@@ -109,17 +109,13 @@ namespace lap_calc
                 Vector2 p1 = this.First;
                 Vector2 p2 = p1 + b1;
                 Vector2 p3 = this.Second;
-                Vector2 p4 = p3 + b2;
 
                 // Get the direction of each line segment
                 Vector2 dir1 = p2 - p1;
-                Vector2 dir2 = p4 - p3;
 
                 // Calculate the cross product of each line segment's direction with the other line segment's direction
-                float cross1 = VectorHelper.Cross(dir1, p3 - p1);
-                float cross2 = VectorHelper.Cross(dir1, p4 - p1);
-                float cross3 = VectorHelper.Cross(dir2, p1 - p3);
-                float cross4 = VectorHelper.Cross(dir2, p2 - p3);
+                float cross3 = VectorHelper.Cross(b2, p1 - p3);
+                float cross4 = VectorHelper.Cross(b2, p2 - p3);
 
                 float t = cross3 / (cross3 - cross4);
                 c = p1 + new Vector2(dir1.X * t, dir1.Y * t);
