@@ -83,36 +83,28 @@ namespace lap_calc
             return new Vector3(x.X, x.Y, 0);
         }
 
+        // Helper data for position calculation
+        public Vector2 B1 { get; private set; }
+        public Vector2 B2 { get; private set; }
+        private Vector2 InstantCenter { get; set; }
+
+        private Vector2 CA { get; set; }
+        private Vector2 CB { get; set; }
+
+        private bool LooksLikeStraight { get; set; }
+        private bool IsLeftTurnSegment { get; set; }
+
         public FindSegmentResult CrossTrack(Vector2 test)
         {
-            var prevSum = Previous.Direction + this.Direction;
-            // b1 is a vector pointed to the right, mid way between the previous segment and the current segment
-            var b1 = new Vector2(prevSum.Y, -prevSum.X);
-
-            var nextSum = this.Direction + this.Next.Direction;
-            // b2 is a vector pointed to the right, mid way between the current segment and the next segment
-            var b2 = new Vector2(nextSum.Y, -nextSum.X);
-
-            // dot(A, B) = |A| |B| cos(theta)
-            var angleBetween = Math.Acos(Vector2.Dot(b1, b2) / (b1.Length() * b2.Length()));
-
-            // 0.052 radians ~= 3 degrees
-            if (angleBetween < 0.052) {
+            if (this.LooksLikeStraight)
+            {
                 // For small angles, the "linear" approximation works well enough and
                 // avoids numerical stability issues of the intersection being very far away
                 return CrossTrackStraightSection(test);
             }
 
-            // Find the intersection point between vectors b1 and b2 - this is the "instant center" of the corner
-            float cross3 = VectorHelper.Cross(b2, -this.Relative);
-            float cross4 = VectorHelper.Cross(b2, b1 - this.Relative);
-            float t = cross3 / (cross3 - cross4);
-            Vector2 c = this.First + new Vector2(b1.X * t, b1.Y * t);
-
-            // Compute some vectors from the instant center to the sector start, sector end, and car
-            Vector2 cToTest = test - c;
-            Vector2 CA = this.First - c;
-            Vector2 CB = this.Second - c;
+            // Compute vector from the instant center car
+            Vector2 cToTest = test - this.InstantCenter;
 
             // this value computes distance from centerline (arc) of the segment, but doesn't account for left/right
             // turns having opposite sign. crossTrack>0 means the car is on the "outside" of the corner, whichever side
@@ -121,7 +113,7 @@ namespace lap_calc
             var crossTrack = cToTest.Length() - CB.Length();
 
             // For left hand corners, flip the sign on crossTrack
-            if (VectorHelper.Cross(CB, this.Direction) > 0)
+            if (this.IsLeftTurnSegment)
             {
                 crossTrack *= -1;
             }
@@ -134,6 +126,36 @@ namespace lap_calc
             var progressAlong = alpha / beta;
 
             return new FindSegmentResult { DistanceAlong = (float)(this.Length * progressAlong), FractionAlong = (float)progressAlong, CrossTrack = (float)crossTrack };
+        }
+
+        public void Precompute()
+        {
+            var prevSum = Previous.Direction + this.Direction;
+            // b1 is a vector pointed to the right, mid way between the previous segment and the current segment
+            this.B1 = new Vector2(prevSum.Y, -prevSum.X);
+
+            var nextSum = this.Direction + this.Next.Direction;
+            // b2 is a vector pointed to the right, mid way between the current segment and the next segment
+            this.B2 = new Vector2(nextSum.Y, -nextSum.X);
+
+            // dot(A, B) = |A| |B| cos(theta)
+            var angleBetween = Math.Acos(Vector2.Dot(this.B1, this.B2) / (this.B1.Length() * this.B2.Length()));
+
+            // 0.052 radians ~= 3 degrees
+            this.LooksLikeStraight = angleBetween < 0.052;
+
+            // Find the intersection point between vectors b1 and b2 - this is the "instant center" of the corner
+            float cross3 = VectorHelper.Cross(this.B2, -this.Relative);
+            float cross4 = VectorHelper.Cross(this.B2, this.B1 - this.Relative);
+            float t = cross3 / (cross3 - cross4);
+            this.InstantCenter = this.First + new Vector2(this.B1.X * t, this.B1.Y * t);
+
+            // Vectors from the instant center to the start and end of this segment
+            this.CA = this.First - this.InstantCenter;
+            this.CB = this.Second - this.InstantCenter;
+
+            // Left turns need the sign flipped on the cross track offset
+            this.IsLeftTurnSegment = VectorHelper.Cross(CB, this.Direction) > 0;
         }
     }
 
@@ -214,6 +236,12 @@ namespace lap_calc
                 last.Id = trackSegments.Length - 1;
             }
 
+            // Precompute values used for position estimation
+            for (int i = 0; i < trackSegments.Length; i++)
+            {
+                trackSegments[i].Precompute();
+            }
+
             return (trackSegments, totalLength);
         }
     }
@@ -288,15 +316,8 @@ namespace lap_calc
                     return new FindPositionResult2(current, crossTrackCurrent, this.track);
                 }
 
-                var prevSum = current.Previous.Direction + current.Direction;
-                // b1 is a vector pointed to the right, mid way between the previous segment and the current segment
-                var b1 = Vector2.Normalize(new Vector2(prevSum.Y, -prevSum.X));
-                bool afterLastSector = VectorHelper.Cross(point - current.First, b1) < 0;
-
-                var nextSum = current.Direction + current.Next.Direction;
-                // b2 is a vector pointed to the right, mid way between the current segment and the next segment
-                var b2 = Vector2.Normalize(new Vector2(nextSum.Y, -nextSum.X));
-                bool beforeNextSector = VectorHelper.Cross(point - current.Second, b2) > 0;
+                bool afterLastSector = VectorHelper.Cross(point - current.First, current.B1) < 0;
+                bool beforeNextSector = VectorHelper.Cross(point - current.Second, current.B2) > 0;
 
                 if (afterLastSector && beforeNextSector)
                 {
