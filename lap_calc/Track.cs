@@ -103,12 +103,14 @@ namespace lap_calc
                 return CrossTrackStraightSection(test);
             }
 
+
+            // Find the intersection point between vectors b1 and b2 - this is the "instant center" of the corner
             Vector2 c;
 
             {
                 // Calculate the cross product of each line segment's direction with the other line segment's direction
-                float cross3 = VectorHelper.Cross(b2, this.First - this.Second);
-                float cross4 = VectorHelper.Cross(b2, b1 + this.First - this.Second);
+                float cross3 = VectorHelper.Cross(b2, -this.Relative);
+                float cross4 = VectorHelper.Cross(b2, b1 - this.Relative);
 
                 float t = cross3 / (cross3 - cross4);
                 c = this.First + new Vector2(b1.X * t, b1.Y * t);
@@ -130,7 +132,9 @@ namespace lap_calc
                 crossTrack *= -1;
             }
 
+            // beta is the total angle of this track segment
             var beta = Math.Acos(Vector2.Dot(CA, CB) / (CA.Length() * CB.Length()));
+            // alpha is the angle of the cars progress along the segment
             var alpha = Math.Acos(Vector2.Dot(cToTest, CA) / (CA.Length() * cToTest.Length()));
 
             var progressAlong = alpha / beta;
