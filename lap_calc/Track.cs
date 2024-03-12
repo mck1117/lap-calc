@@ -91,6 +91,8 @@ namespace lap_calc
         private Vector2 CA { get; set; }
         private Vector2 CB { get; set; }
 
+        private float Beta { get; set; }
+
         private bool LooksLikeStraight { get; set; }
         private bool IsLeftTurnSegment { get; set; }
 
@@ -118,12 +120,10 @@ namespace lap_calc
                 crossTrack *= -1;
             }
 
-            // beta is the total angle of this track segment
-            var beta = Math.Acos(Vector2.Dot(CA, CB) / (CA.Length() * CB.Length()));
             // alpha is the angle of the cars progress along the segment
             var alpha = Math.Acos(Vector2.Dot(cToTest, CA) / (CA.Length() * cToTest.Length()));
 
-            var progressAlong = alpha / beta;
+            var progressAlong = alpha / this.Beta;
 
             return new FindSegmentResult {
                 DistanceAlong = (float)(this.Length * progressAlong),
@@ -157,6 +157,9 @@ namespace lap_calc
             // Vectors from the instant center to the start and end of this segment
             this.CA = this.First - this.InstantCenter;
             this.CB = this.Second - this.InstantCenter;
+
+            // beta is the total angle of this track segment
+            this.Beta = Math.Acos(Vector2.Dot(CA, CB) / (CA.Length() * CB.Length()));
 
             // Left turns need the sign flipped on the cross track offset
             this.IsLeftTurnSegment = VectorHelper.Cross(CB, this.Direction) > 0;
