@@ -125,7 +125,11 @@ namespace lap_calc
 
             var progressAlong = alpha / beta;
 
-            return new FindSegmentResult { DistanceAlong = (float)(this.Length * progressAlong), FractionAlong = (float)progressAlong, CrossTrack = (float)crossTrack };
+            return new FindSegmentResult {
+                DistanceAlong = (float)(this.Length * progressAlong),
+                FractionAlong = (float)progressAlong,
+                CrossTrack = (float)crossTrack
+            };
         }
 
         public void Precompute()
